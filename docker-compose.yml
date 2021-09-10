@@ -1,0 +1,71 @@
+version: "3"
+
+services:
+  database:
+    image: postgres
+    container_name: database
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=master123
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./docker-volumes/postgresql:/var/lib/postgresql
+    networks:
+      - backend
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    volumes:
+      - /var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file:
+      - .env
+    networks:
+      - backend
+  service1:
+    build: ./service-1
+    restart: on-failure
+    hostname: service_1
+    ports:
+      - 8001:8001
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      - database
+      - rabbitmq
+  service2:
+    build: ./service-2
+    restart: on-failure
+    hostname: service_2
+    ports:
+      - 8002:8002
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      - database
+      - rabbitmq
+  service3:
+    build: ./service-3
+    restart: on-failure
+    hostname: service_1
+    ports:
+      - 8003:8003
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      - database
+      - rabbitmq
+networks:
+  backend:
+    driver: bridge
